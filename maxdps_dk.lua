@@ -127,25 +127,28 @@ Routine:RegisterRoutine(function()
     -----------------------------
     -- Defensive Logic (off-GCD abilities, always check)
     -----------------------------
-    -- Health Potion (emergency)
+    -- Check if we already have a major defensive active (anti-overlap)
+    local hasDefensive = buff(IceboundFortitude) or buff(VampiricBlood) or buff(AntiMagicShell)
+
+    -- Health Potion (emergency, highest priority)
     if hp <= POTION_HP_THRESHOLD then
         for _, itemId in ipairs(HealthPotions) do
             if useItem(itemId) then return end
         end
     end
 
-    -- Icebound Fortitude (off-GCD)
-    if hp <= DEFENSIVE_HP_THRESHOLD and castable(IceboundFortitude) then
+    -- Icebound Fortitude: panic button at very low HP
+    if hp <= 30 and not hasDefensive and castable(IceboundFortitude) then
         return cast(IceboundFortitude)
     end
 
-    -- Vampiric Blood (off-GCD, Blood spec only)
-    if hp <= DEFENSIVE_HP_THRESHOLD and castable(VampiricBlood) then
+    -- Vampiric Blood: proactive at moderate HP (Blood spec only)
+    if hp <= 60 and not hasDefensive and castable(VampiricBlood) then
         return cast(VampiricBlood)
     end
 
-    -- Anti-Magic Shell (off-GCD)
-    if hp <= DEFENSIVE_HP_THRESHOLD and castable(AntiMagicShell) then
+    -- Anti-Magic Shell: good for magic damage, use slightly higher threshold
+    if hp <= 50 and not hasDefensive and castable(AntiMagicShell) then
         return cast(AntiMagicShell)
     end
 
