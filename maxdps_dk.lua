@@ -107,9 +107,6 @@ Routine:RegisterRoutine(function()
     -- Ensure MaxDps is loaded
     if not MaxDps or not MaxDps.FrameData then return end
 
-    -- GCD check
-    if gcd() > latency() then return end
-
     -- Don't dismount
     if mounted() then return end
 
@@ -119,7 +116,7 @@ Routine:RegisterRoutine(function()
     local hp = health()
 
     -----------------------------
-    -- Defensive Logic
+    -- Defensive Logic (off-GCD abilities, always check)
     -----------------------------
     -- Health Potion (emergency)
     if hp <= POTION_HP_THRESHOLD then
@@ -128,32 +125,35 @@ Routine:RegisterRoutine(function()
         end
     end
 
-    -- Icebound Fortitude
+    -- Icebound Fortitude (off-GCD)
     if hp <= DEFENSIVE_HP_THRESHOLD and castable(IceboundFortitude) then
         return cast(IceboundFortitude)
     end
 
-    -- Vampiric Blood (Blood spec only)
+    -- Vampiric Blood (off-GCD, Blood spec only)
     if hp <= DEFENSIVE_HP_THRESHOLD and castable(VampiricBlood) then
         return cast(VampiricBlood)
     end
 
-    -- Anti-Magic Shell
+    -- Anti-Magic Shell (off-GCD)
     if hp <= DEFENSIVE_HP_THRESHOLD and castable(AntiMagicShell) then
         return cast(AntiMagicShell)
     end
 
-    -- Death Strike for self-healing when low
-    if hp <= 60 and castable(DeathStrike, target) then
-        return cast(DeathStrike, target)
-    end
+    -----------------------------
+    -- MaxDps Rotation (GCD-locked abilities)
+    -----------------------------
+    -- Only proceed with rotation if GCD is available
+    if gcd() > latency() then return end
 
-    -----------------------------
-    -- MaxDps Rotation
-    -----------------------------
     -- Require a valid attackable target for rotation
     if not UnitExists(target) then return end
     if not UnitCanAttack(player, target) then return end
+
+    -- Death Strike for self-healing when low (on GCD)
+    if hp <= 60 and castable(DeathStrike, target) then
+        return cast(DeathStrike, target)
+    end
 
     -- Prepare MaxDps frame data
     MaxDps:PrepareFrameData()
