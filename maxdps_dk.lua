@@ -110,6 +110,15 @@ Routine:RegisterRoutine(function()
     -- Don't dismount
     if mounted() then return end
 
+    -- Resolve any pending ground spells (stuck reticle)
+    if IsSpellPending() then
+        if UnitExists(target) then
+            return Click(ObjectPosition(target))
+        else
+            return Click(ObjectPosition('player'))
+        end
+    end
+
     -- Only run in combat
     if not combat() then return end
 
