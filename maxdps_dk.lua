@@ -80,7 +80,7 @@ local function smartCast(spellId)
     -- Ground-targeted spells: cast at cursor (target's feet)
     if GroundTargetSpells[spellId] then
         if castable(spellId) then
-            return cast(spellId, 'none'):atcursor()
+            return cast(spellId, 'none'):clickunit('target')
         end
         return
     end
